@@ -26,7 +26,7 @@ namespace TokenRing
 
         private bool isByteReady;
 
-        private List<Wait> deque = new List<Wait>();
+        private List<Wait> queue = new List<Wait>();
 
         private void SendDataMonitor()
         {
@@ -48,14 +48,18 @@ namespace TokenRing
                         textBox3.Text = station1.ReceivedMessage1;
                         textBox2.Text = "*";
                         package = station1.ReceivedMessage(package);
-
+                        if (station1.IsFinishReceive && queue.Count > 0)
+                        {
+                            queue.RemoveAt(0);
+                            station1.IsFinishReceive = false;
+                        }
                     }));
                     Thread.Sleep(1000);
 
                     this.Invoke((MethodInvoker)(delegate
                     {
                         textBox2.Text = "";
-                        if (stationName == "1")
+                        if (queue[0].StationAddress == 1)
                         {
                             if (station1.IsFrameReturn)
                             {
@@ -86,13 +90,17 @@ namespace TokenRing
                         package = station2.ReceivedMessage(package);
                         textBox11.Text = "*";
                         textBox10.Text = station2.ReceivedMessage1;
-
+                        if (station2.IsFinishReceive && queue.Count > 0)
+                        {
+                            queue.RemoveAt(0);
+                            station2.IsFinishReceive = false;
+                        }
                     }));
                     Thread.Sleep(1000);
                     this.Invoke((MethodInvoker)(delegate
                     {
                         textBox11.Text = "";
-                        if (stationName == "2")
+                        if (queue[0].StationAddress == 10)
                         {
                             if (station1.IsFrameReturn)
                             {
@@ -127,6 +135,11 @@ namespace TokenRing
                         {
                             textBox5.Text += "\r\nFix frame";
                         }
+                        if (station3.IsFinishReceive && queue.Count > 0)
+                        {
+                            queue.RemoveAt(0);
+                            station3.IsFinishReceive = false;
+                        }
                     }));
                     if (station3.IsTerminate)
                     {
@@ -137,7 +150,7 @@ namespace TokenRing
                     this.Invoke((MethodInvoker)(delegate
                     {
                         textBox5.Text = "";
-                        if (stationName == "3")
+                        if (queue[0].StationAddress == 100)
                         {
                             if (station1.IsFrameReturn)
                             {
@@ -163,17 +176,17 @@ namespace TokenRing
             InitializeComponent();
         }
 
-        private int count = 0;
+        private int position = 0;
         private void Station1Write()
         {
             while (true)
             {
-                if (stationName == "1")
+                if (queue.Count > 0 && queue[0].StationAddress == 1)
                 {
                     if (station1.IsFrameReturn)
                     {
-                        if (count < textBox1.Text.Length)
-                            dataByte = (byte)textBox1.Text[count];
+                        if (position < queue[0].Message.Length)
+                            dataByte = (byte)queue[0].Message[position];
                         else
                             dataByte = 0;
                         isByteReady = true;
@@ -186,12 +199,12 @@ namespace TokenRing
         {
             while (true)
             {
-                if (stationName == "2")
+                if (queue.Count > 0 && queue[0].StationAddress == 10)
                 {
                     if (station2.IsFrameReturn)
                     {
-                        if (count < textBox12.Text.Length)
-                            dataByte = (byte)textBox12.Text[count];
+                        if (position < queue[0].Message.Length)
+                            dataByte = (byte)queue[0].Message[position];
                         else
                             dataByte = 0;
                         isByteReady = true;
@@ -204,12 +217,12 @@ namespace TokenRing
         {
             while (true)
             {
-                if (stationName == "3")
+                if (queue.Count > 0 && queue[0].StationAddress == 100)
                 {
                     if (station3.IsFrameReturn)
                     {
-                        if (count < textBox6.Text.Length)
-                            dataByte = (byte)textBox6.Text[count];
+                        if (position < queue[0].Message.Length)
+                            dataByte = (byte)queue[0].Message[position];
                         else
                             dataByte = 0;
                         isByteReady = true;
@@ -222,6 +235,7 @@ namespace TokenRing
         {
             dataSendThread1 = new Thread(Station1Write);
             dataSendThread1.Start();
+            queue.Add(new Wait(1, textBox1.Text));
         }
 
         private Thread dataSendThread2;
@@ -230,6 +244,7 @@ namespace TokenRing
         {
             dataSendThread2 = new Thread(Station2Write);
             dataSendThread2.Start();
+            queue.Add(new Wait(10, textBox12.Text));
         }
 
         private Thread dataSendThread3;
@@ -238,6 +253,7 @@ namespace TokenRing
         {
             dataSendThread3 = new Thread(Station3Write);
             dataSendThread3.Start();
+            queue.Add(new Wait(100, textBox6.Text));
         }
 
         public void CreateToken(object sender, MouseEventArgs e)
