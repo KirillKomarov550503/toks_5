@@ -70,6 +70,7 @@
             // 
             // textBox2
             // 
+            this.textBox2.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.textBox2.Location = new System.Drawing.Point(32, 258);
             this.textBox2.Multiline = true;
             this.textBox2.Name = "textBox2";
@@ -151,6 +152,7 @@
             // 
             // textBox11
             // 
+            this.textBox11.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.textBox11.Location = new System.Drawing.Point(657, 258);
             this.textBox11.Multiline = true;
             this.textBox11.Name = "textBox11";
@@ -203,6 +205,7 @@
             // 
             // textBox5
             // 
+            this.textBox5.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.textBox5.Location = new System.Drawing.Point(402, 582);
             this.textBox5.Multiline = true;
             this.textBox5.Name = "textBox5";
@@ -276,47 +279,47 @@
             this.label13.AutoSize = true;
             this.label13.Location = new System.Drawing.Point(419, 169);
             this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(112, 17);
+            this.label13.Size = new System.Drawing.Size(138, 17);
             this.label13.TabIndex = 30;
-            this.label13.Text = "Source address:";
+            this.label13.Text = "Destination address:";
             // 
             // label14
             // 
             this.label14.AutoSize = true;
             this.label14.Location = new System.Drawing.Point(1030, 169);
             this.label14.Name = "label14";
-            this.label14.Size = new System.Drawing.Size(112, 17);
+            this.label14.Size = new System.Drawing.Size(138, 17);
             this.label14.TabIndex = 31;
-            this.label14.Text = "Source address:";
+            this.label14.Text = "Destination address:";
             // 
             // label15
             // 
             this.label15.AutoSize = true;
             this.label15.Location = new System.Drawing.Point(776, 490);
             this.label15.Name = "label15";
-            this.label15.Size = new System.Drawing.Size(112, 17);
+            this.label15.Size = new System.Drawing.Size(138, 17);
             this.label15.TabIndex = 32;
-            this.label15.Text = "Source address:";
+            this.label15.Text = "Destination address:";
             // 
             // textBox7
             // 
-            this.textBox7.Location = new System.Drawing.Point(538, 169);
+            this.textBox7.Location = new System.Drawing.Point(563, 166);
             this.textBox7.Name = "textBox7";
-            this.textBox7.Size = new System.Drawing.Size(62, 22);
+            this.textBox7.Size = new System.Drawing.Size(43, 22);
             this.textBox7.TabIndex = 33;
             // 
             // textBox8
             // 
-            this.textBox8.Location = new System.Drawing.Point(1148, 169);
+            this.textBox8.Location = new System.Drawing.Point(1174, 169);
             this.textBox8.Name = "textBox8";
-            this.textBox8.Size = new System.Drawing.Size(62, 22);
+            this.textBox8.Size = new System.Drawing.Size(44, 22);
             this.textBox8.TabIndex = 34;
             // 
             // textBox9
             // 
-            this.textBox9.Location = new System.Drawing.Point(894, 487);
+            this.textBox9.Location = new System.Drawing.Point(920, 490);
             this.textBox9.Name = "textBox9";
-            this.textBox9.Size = new System.Drawing.Size(62, 22);
+            this.textBox9.Size = new System.Drawing.Size(44, 22);
             this.textBox9.TabIndex = 35;
             // 
             // button4
@@ -366,7 +369,7 @@
             this.Controls.Add(this.textBox1);
             this.Name = "Form1";
             this.Text = "Form1";
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
             this.PerformLayout();

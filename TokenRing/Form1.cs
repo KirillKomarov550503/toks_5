@@ -266,14 +266,17 @@ namespace TokenRing
             thread3.Start();
         }
 
-        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             thread1.Abort();
             thread2.Abort();
             thread3.Abort();
-            dataSendThread1.Abort();
-            dataSendThread2.Abort();
-            dataSendThread3.Abort();
+            if (dataSendThread1 != null)
+                dataSendThread1.Abort();
+            if (dataSendThread2 != null)
+                dataSendThread2.Abort();
+            if (dataSendThread3 != null)
+                dataSendThread3.Abort();
         }
     }
 }
