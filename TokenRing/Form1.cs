@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+
 using System.Windows.Forms;
 
 namespace TokenRing
@@ -36,11 +37,12 @@ namespace TokenRing
                 Thread.Sleep(10);
             }
         }
-        private bool IsNeedWrite;
+        private volatile bool IsNeedWrite;
         public void StationWork1()
         {
             while (true)
             {
+                Console.WriteLine("StationWork????????????????????");
                 if (package != null && activeStation == 3)
                 {
 
@@ -61,29 +63,15 @@ namespace TokenRing
                     {
                         textBox2.Text = "";
                         if (queue.Count > 0 && queue[0].SourceAddress == 1)
-                            IsNeedWrite = true;
-                        while (IsNeedWrite) ;
+                        {
+                            Console.WriteLine("Station work1: IsNeedWrite");
+                            
+                            Station1Write();
+                        }
+                        
                         activeStation = 1;
                     }));
 
-                    //this.Invoke((MethodInvoker)(delegate
-                    //{
-                    //    textBox2.Text = "";
-                    //    if (queue.Count > 0 && queue[0].StationAddress == 1)
-                    //    {
-                    //        if (station1.IsFrameReturn)
-                    //        {
-                    //            while (!isByteReady) ;
-                    //            isByteReady = false;
-                    //            station1.SourceAddress = 1;
-                    //            station1.DestinationAddress = Convert.ToByte(textBox7.Text);
-                    //            package = station1.SendMessage(package, dataByte);
-                    //            station1.IsFrameReturn = false;
-                    //            position++;
-                    //        }
-                    //    }
-                    //    
-                    //}));
                 }
                 Thread.Sleep(50);
             }
@@ -157,23 +145,7 @@ namespace TokenRing
                         while (IsNeedWrite) ;
                         activeStation = 3;
                     }));
-                    //this.Invoke((MethodInvoker)(delegate
-                    //{
-                    //    textBox5.Text = "";
-                    //    if (queue.Count > 0 && queue[0].StationAddress == 100)
-                    //    {
-                    //        if (station1.IsFrameReturn)
-                    //        {
-                    //            while (!isByteReady) ;
-                    //            isByteReady = false;
-                    //            station1.SourceAddress = 100;
-                    //            station1.DestinationAddress = Convert.ToByte(textBox9.Text);
-                    //            package = station3.SendMessage(package, dataByte);
-                    //            station1.IsFrameReturn = false;
-                    //            position++;
-                    //        }
-                    //    }
-                    //}));
+
                 }
                 Thread.Sleep(50);
             }
@@ -187,38 +159,28 @@ namespace TokenRing
         private int position = 0;
         private void Station1Write()
         {
-            while (true)
-            {
-                this.Invoke((MethodInvoker)(delegate
+            this.Invoke((MethodInvoker)(delegate
                 {
-                    if (IsNeedWrite)
+                    if (station1.IsFrameReturn)
                     {
-                        if (queue.Count > 0 && queue[0].SourceAddress == 1)
+                        if (position < queue[0].Message.Length)
                         {
-
-                            if (station1.IsFrameReturn)
-                            {
-                                if (position < queue[0].Message.Length)
-                                {
-                                    station1.SourceAddress = queue[0].SourceAddress;
-                                    station1.DestinationAddress = queue[0].DestinationAddress;
-                                    package = station1.SendMessage(package, queue[0].Message[position]);
-                                    station1.IsFrameReturn = false;
-                                    position++;
-                                }
-                                else
-                                {
-                                    dataByte = 0;
-                                    position = 0;
-                                }
-                                isByteReady = true;
-                                IsNeedWrite = false;
-                            }
+                            station1.SourceAddress = queue[0].SourceAddress;
+                            station1.DestinationAddress = queue[0].DestinationAddress;
+                            package = station1.SendMessage(package, queue[0].Message[position]);
+                            station1.IsFrameReturn = false;
+                            position++;
                         }
+                        else
+                        {
+                            dataByte = 0;
+                            position = 0;
+                        }
+                        
                     }
                 }));
-                Thread.Sleep(50);
-            }
+            Thread.Sleep(50);
+
         }
 
         private void Station2Write()
@@ -372,12 +334,7 @@ namespace TokenRing
             thread2.Start();
             thread3 = new Thread(StationWork3);
             thread3.Start();
-            dataSendThread1 = new Thread(Station1Write);
-            dataSendThread1.Start();
-            dataSendThread2 = new Thread(Station2Write);
-            dataSendThread2.Start();
-            dataSendThread3 = new Thread(Station3Write);
-            dataSendThread3.Start();
+            
 
         }
 
