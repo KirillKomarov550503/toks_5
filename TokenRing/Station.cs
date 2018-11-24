@@ -22,7 +22,7 @@ namespace TokenRing
             this.receivedMessage = "";
             this.senderAddress = 0;
             this.isTerminate = false;
-            this.isFrameReturn = false;
+            this.isFrameReturn = true;
         }
 
         public bool IsMonitor { get => isMonitor; set => isMonitor = value; }
