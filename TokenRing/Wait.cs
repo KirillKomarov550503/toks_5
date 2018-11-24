@@ -8,15 +8,18 @@ namespace TokenRing
 {
     class Wait
     {
-        private byte stationAddress;
-        private string message;
-        public Wait(byte stationAddress, string message)
+        private byte sourceAddress;
+        private byte[] message;
+        private byte destinationAddress;
+        public Wait(byte stationAddress, byte destinationAddress, byte[] message)
         {
-            this.stationAddress = stationAddress;
+            this.sourceAddress = stationAddress;
+            this.destinationAddress = destinationAddress;
             this.message = message;
         }
 
-        public byte StationAddress { get => stationAddress; set => stationAddress = value; }
-        public string Message { get => message; set => message = value; }
+        public byte SourceAddress { get => sourceAddress; set => sourceAddress = value; }
+        public byte[] Message { get => message; set => message = value; }
+        public byte DestinationAddress { get => destinationAddress; set => destinationAddress = value; }
     }
 }
