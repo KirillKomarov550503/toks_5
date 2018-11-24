@@ -48,7 +48,7 @@ namespace TokenRing
                     {
                         activeStation = 0;
                         textBox3.Text = station1.ReceivedMessage1;
-                        textBox2.Text = "*";
+                        textBox2.Text = "*\r\n";
                         package = station1.ReceivedMessage(package);
                         if (station1.IsFinishReceive && queue.Count > 0)
                         {
@@ -99,7 +99,7 @@ namespace TokenRing
                     {
                         activeStation = 0;
                         package = station2.ReceivedMessage(package);
-                        textBox11.Text = "*";
+                        textBox11.Text = "*\r\n";
                         textBox10.Text = station2.ReceivedMessage1;
                         if (station2.IsFinishReceive && queue.Count > 0)
                         {
@@ -131,11 +131,11 @@ namespace TokenRing
                     {
                         activeStation = 0;
                         package = station3.ReceivedMessage(package);
-                        textBox5.Text = "*";
+                        textBox5.Text = "*\r\n";
                         textBox4.Text = station3.ReceivedMessage1;
                         if (station3.IsTerminate)
                         {
-                            textBox5.Text += "\r\nFix frame";
+                            textBox5.Text += "Fix frame\r\n";
                         }
                         if (station3.IsFinishReceive && queue.Count > 0)
                         {
@@ -187,9 +187,9 @@ namespace TokenRing
         private int position = 0;
         private void Station1Write()
         {
-            this.Invoke((MethodInvoker)(delegate
+            while (true)
             {
-                while (true)
+                this.Invoke((MethodInvoker)(delegate
                 {
                     if (IsNeedWrite)
                     {
@@ -216,21 +216,22 @@ namespace TokenRing
                             }
                         }
                     }
-                }
-            }));
+                }));
+                Thread.Sleep(50);
+            }
         }
 
         private void Station2Write()
         {
-            this.Invoke((MethodInvoker)(delegate
+
+            while (true)
             {
-                while (true)
+                this.Invoke((MethodInvoker)(delegate
                 {
                     if (IsNeedWrite)
                     {
                         if (queue.Count > 0 && queue[0].SourceAddress == 10)
                         {
-
                             if (station2.IsFrameReturn)
                             {
                                 if (position < queue[0].Message.Length)
@@ -251,15 +252,17 @@ namespace TokenRing
                             }
                         }
                     }
-                }
-            }));
+                }));
+                Thread.Sleep(50);
+            }
+
         }
 
         private void Station3Write()
         {
-            this.Invoke((MethodInvoker)(delegate
+            while (true)
             {
-                while (true)
+                this.Invoke((MethodInvoker)(delegate
                 {
                     if (IsNeedWrite)
                     {
@@ -286,16 +289,26 @@ namespace TokenRing
                             }
                         }
                     }
-                }
-            }));
+                }));
+                Thread.Sleep(50);
+            }
+
         }
         private Thread dataSendThread1;
         public void Station1Write(object sender, MouseEventArgs e)
         {
-            queue.Add(new Wait(1, Convert.ToByte(textBox7.Text),
-                Encoding.ASCII.GetBytes(textBox1.Text)));
-            dataSendThread1 = new Thread(Station1Write);
-            dataSendThread1.Start();
+            this.Invoke((MethodInvoker)(delegate
+            {
+                if (textBox1.Text.Length == 0 || textBox7.Text.Length == 0)
+                {
+                    textBox2.Text += "Empty \"Input\" or \"Destination address\" field";
+                    return;
+                }
+
+                queue.Add(new Wait(1, Convert.ToByte(textBox7.Text),
+                    Encoding.ASCII.GetBytes(textBox1.Text)));
+                //IsNeedWrite = true;
+            }));
 
         }
 
@@ -303,22 +316,35 @@ namespace TokenRing
 
         public void Station2Write(object sender, MouseEventArgs e)
         {
-            queue.Add(new Wait(10, Convert.ToByte(textBox8.Text), 
-                Encoding.ASCII.GetBytes(textBox12.Text)));
-            dataSendThread2 = new Thread(Station2Write);
-            dataSendThread2.Start();
+            this.Invoke((MethodInvoker)(delegate
+            {
+                if (textBox8.Text.Length == 0 || textBox12.Text.Length == 0)
+                {
+                    textBox11.Text += "Empty \"Input\" or \"Destination address\" field";
+                    return;
+                }
+                queue.Add(new Wait(10, Convert.ToByte(textBox8.Text),
+                    Encoding.ASCII.GetBytes(textBox12.Text)));
+                //IsNeedWrite = true;
 
+            }));
         }
 
         private Thread dataSendThread3;
 
         public void Station3Write(object sender, MouseEventArgs e)
         {
-            queue.Add(new Wait(100, Convert.ToByte(textBox9.Text),
-                Encoding.ASCII.GetBytes(textBox6.Text)));
-            dataSendThread3 = new Thread(Station3Write);
-            dataSendThread3.Start();
-
+            this.Invoke((MethodInvoker)(delegate
+            {
+                if (textBox9.Text.Length == 0 || textBox6.Text.Length == 0)
+                {
+                    textBox5.Text += "Empty \"Input\" or \"Destination address\" field";
+                    return;
+                }
+                //IsNeedWrite = true;
+                queue.Add(new Wait(100, Convert.ToByte(textBox9.Text),
+                    Encoding.ASCII.GetBytes(textBox6.Text)));
+            }));
         }
 
         public void CreateToken(object sender, MouseEventArgs e)
@@ -332,6 +358,7 @@ namespace TokenRing
         private void Form1_Load(object sender, EventArgs e)
         {
             stationName = "";
+            IsNeedWrite = false;
             station1 = new Station(1, false);
             station2 = new Station(10, false);
             station3 = new Station(100, true);
@@ -345,6 +372,13 @@ namespace TokenRing
             thread2.Start();
             thread3 = new Thread(StationWork3);
             thread3.Start();
+            dataSendThread1 = new Thread(Station1Write);
+            dataSendThread1.Start();
+            dataSendThread2 = new Thread(Station2Write);
+            dataSendThread2.Start();
+            dataSendThread3 = new Thread(Station3Write);
+            dataSendThread3.Start();
+
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
