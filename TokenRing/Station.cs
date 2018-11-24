@@ -11,7 +11,7 @@ namespace TokenRing
         private byte senderAddress;
         private bool isTerminate;
         private bool isFrameReturn;
-
+        private bool isFinishReceive;
         
         public Station(byte sourceAddress, bool isMonitor)
         {
@@ -33,6 +33,7 @@ namespace TokenRing
         public byte SenderAddress { get => senderAddress; set => senderAddress = value; }
         public bool IsTerminate { get => isTerminate; set => isTerminate = value; }
         public bool IsFrameReturn { get => isFrameReturn; set => isFrameReturn = value; }
+        public bool IsFinishReceive { get => isFinishReceive; set => isFinishReceive = value; }
 
         public byte[] ReceivedMessage(byte[] package)
         {
@@ -67,7 +68,7 @@ namespace TokenRing
                     
                     if (senderAddress != package[2]) // Если хранящийся адрес отправителя не равен адресу, указанному в пакете, то это значит,
                     {// что сообщение получено уже от другой станции и нужно добавить символ enter
-                        
+                        isFinishReceive = true;
                         receivedMessage += "\r\n";
                     }
                     senderAddress = package[2]; // записываем новый адрес отправителя

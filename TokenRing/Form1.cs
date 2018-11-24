@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -25,27 +26,45 @@ namespace TokenRing
 
         private bool isByteReady;
 
+        private List<Wait> deque = new List<Wait>();
+
+        private void SendDataMonitor()
+        {
+            while (true)
+            {
+                Thread.Sleep(10);
+            }
+        }
         public void StationWork1()
         {
             while (true)
             {
                 if (package != null && stationNumber == 3)
                 {
+
                     this.Invoke((MethodInvoker)(delegate
                     {
                         stationNumber = 0;
-                        byte[] pack = station1.ReceivedMessage(package);
+                        textBox3.Text = station1.ReceivedMessage1;
+                        textBox2.Text = "*";
+                        package = station1.ReceivedMessage(package);
+
+                    }));
+                    Thread.Sleep(1000);
+
+                    this.Invoke((MethodInvoker)(delegate
+                    {
+                        textBox2.Text = "";
                         if (stationName == "1")
                         {
                             if (station1.IsFrameReturn)
                             {
                                 while (!isByteReady) ;
                                 isByteReady = false;
-                                package = station1.SendMessage(pack, dataByte);
+                                package = station1.SendMessage(package, dataByte);
                                 station1.IsFrameReturn = false;
                             }
                         }
-
                         stationNumber = 1;
                     }));
                 }
@@ -62,14 +81,22 @@ namespace TokenRing
                     this.Invoke((MethodInvoker)(delegate
                     {
                         stationNumber = 0;
-                        byte[] pack = station2.ReceivedMessage(package);
+                        package = station2.ReceivedMessage(package);
+                        textBox11.Text = "*";
+                        textBox10.Text = station2.ReceivedMessage1;
+
+                    }));
+                    Thread.Sleep(1000);
+                    this.Invoke((MethodInvoker)(delegate
+                    {
+                        textBox11.Text = "";
                         if (stationName == "2")
                         {
                             if (station1.IsFrameReturn)
                             {
                                 while (!isByteReady) ;
                                 isByteReady = false;
-                                package = station2.SendMessage(pack, dataByte);
+                                package = station2.SendMessage(package, dataByte);
                                 station1.IsFrameReturn = false;
                             }
                         }
@@ -89,18 +116,28 @@ namespace TokenRing
                     this.Invoke((MethodInvoker)(delegate
                     {
                         stationNumber = 0;
-                        byte[] pack = station2.ReceivedMessage(package);
+                        package = station3.ReceivedMessage(package);
+                        textBox5.Text = "*";
+                        textBox4.Text = station3.ReceivedMessage1;
+
+                    }));
+                    Thread.Sleep(1000);
+                    this.Invoke((MethodInvoker)(delegate
+                    {
+                        textBox5.Text = "";
                         if (stationName == "3")
                         {
                             if (station1.IsFrameReturn)
                             {
                                 while (!isByteReady) ;
                                 isByteReady = false;
-                                package = station3.SendMessage(pack, dataByte);
+                                package = station3.SendMessage(package, dataByte);
                                 station1.IsFrameReturn = false;
                             }
                         }
+
                         stationNumber = 3;
+                        
                     }));
                 }
                 Thread.Sleep(50);
@@ -180,14 +217,40 @@ namespace TokenRing
 
         public void Station3Write(object sender, MouseEventArgs e)
         {
+            Thread dataSendThread = new Thread(Station3Write);
+            dataSendThread.Start();
+        }
 
+        public void CreateToken(object sender, MouseEventArgs e)
+        {
+            package = new byte[6];
+            for (int i = 0; i < 6; i++)
+                package[i] = 0;
+            stationNumber = 2;
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            station1 = new Station(1, false);
+            station2 = new Station(10, false);
+            station3 = new Station(100, true);
             button1.MouseClick += Station1Write;
             button2.MouseClick += Station2Write;
-            button3.MouseClick += Station2Write;
+            button3.MouseClick += Station3Write;
+            button4.MouseClick += CreateToken;
+            thread1 = new Thread(StationWork1);
+            thread1.Start();
+            thread2 = new Thread(StationWork2);
+            thread2.Start();
+            thread3 = new Thread(StationWork3);
+            thread3.Start();
+        }
+
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            thread1.Abort();
+            thread2.Abort();
+            thread3.Abort();
         }
     }
 }
