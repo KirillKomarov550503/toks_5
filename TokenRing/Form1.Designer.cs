@@ -75,7 +75,7 @@
             this.textBox2.Multiline = true;
             this.textBox2.Name = "textBox2";
             this.textBox2.ReadOnly = true;
-            this.textBox2.Size = new System.Drawing.Size(360, 57);
+            this.textBox2.Size = new System.Drawing.Size(360, 92);
             this.textBox2.TabIndex = 1;
             // 
             // textBox3
@@ -157,7 +157,7 @@
             this.textBox11.Multiline = true;
             this.textBox11.Name = "textBox11";
             this.textBox11.ReadOnly = true;
-            this.textBox11.Size = new System.Drawing.Size(360, 57);
+            this.textBox11.Size = new System.Drawing.Size(360, 92);
             this.textBox11.TabIndex = 13;
             // 
             // textBox12
@@ -210,7 +210,7 @@
             this.textBox5.Multiline = true;
             this.textBox5.Name = "textBox5";
             this.textBox5.ReadOnly = true;
-            this.textBox5.Size = new System.Drawing.Size(360, 57);
+            this.textBox5.Size = new System.Drawing.Size(360, 78);
             this.textBox5.TabIndex = 19;
             // 
             // textBox6

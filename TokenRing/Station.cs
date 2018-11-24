@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 namespace TokenRing
 {
     class Station
@@ -39,18 +40,18 @@ namespace TokenRing
         {
             if (isMonitor) // Если станция является монитором
             {
-                if (package[0] == 1) // Если полученый пакет - это токен
+                if (package[0] == 1) // Если полученый пакет - это кадр
                 {
                     if (package[4] == 0)// Если байт "монитор" равен нулю, то меняем значение на 1
                     {
                         package[4] = 1;
                     }
-                    else // Иначе пакет прошел всё кольцо, не найдя адрес станции получения, то чтобы избежать зацикливания, мы удаляем данный token
+                    else // Иначе пакет прошел всё кольцо, не найдя адрес станции получения, то чтобы избежать зацикливания, мы инициируем исправление кольца
                     {
                         for (int i = 0; i < 6; i++)
                             package[0] = 0;
                         isTerminate = true;
-                        return package;
+                        //return package;
                     }
                 }
             }
@@ -61,7 +62,8 @@ namespace TokenRing
                     if (package[2] == sourceAddress) //  если адрес источника в пакете равен адресу станции
                     {
                         isFrameReturn = true;
-
+                        package[3] = 0;
+                        return package;
                     }
 
                 }
@@ -91,6 +93,7 @@ namespace TokenRing
                 package[1] = 0;
                 package[2] = 0;
                 package[3] = 0;
+                package[4] = 0;
                 package[5] = 0;
             }
             else
@@ -99,9 +102,14 @@ namespace TokenRing
                 package[1] = destinationAddress;
                 package[2] = sourceAddress;
                 package[3] = 0;
+                package[4] = 0;
                 package[5] = bt;
             }
-            
+            Console.WriteLine("SendMessage - package: ");
+            foreach(byte b in package)
+            {
+                Console.Write(b + " ");
+            }
             return package;
         }
     }
