@@ -61,6 +61,8 @@ namespace TokenRing
                             {
                                 while (!isByteReady) ;
                                 isByteReady = false;
+                                station1.SourceAddress = 1;
+                                station1.DestinationAddress = Convert.ToByte(textBox7.Text);
                                 package = station1.SendMessage(package, dataByte);
                                 station1.IsFrameReturn = false;
                             }
@@ -96,6 +98,8 @@ namespace TokenRing
                             {
                                 while (!isByteReady) ;
                                 isByteReady = false;
+                                station1.SourceAddress = 10;
+                                station1.DestinationAddress = Convert.ToByte(textBox8.Text);
                                 package = station2.SendMessage(package, dataByte);
                                 station1.IsFrameReturn = false;
                             }
@@ -119,8 +123,16 @@ namespace TokenRing
                         package = station3.ReceivedMessage(package);
                         textBox5.Text = "*";
                         textBox4.Text = station3.ReceivedMessage1;
-
+                        if (station3.IsTerminate)
+                        {
+                            textBox5.Text += "\r\nFix frame";
+                        }
                     }));
+                    if (station3.IsTerminate)
+                    {
+                        station3.IsTerminate = true;
+                        Thread.Sleep(2000);
+                    }
                     Thread.Sleep(1000);
                     this.Invoke((MethodInvoker)(delegate
                     {
@@ -131,13 +143,15 @@ namespace TokenRing
                             {
                                 while (!isByteReady) ;
                                 isByteReady = false;
+                                station1.SourceAddress = 100;
+                                station1.DestinationAddress = Convert.ToByte(textBox9.Text);
                                 package = station3.SendMessage(package, dataByte);
                                 station1.IsFrameReturn = false;
                             }
                         }
 
                         stationNumber = 3;
-                        
+
                     }));
                 }
                 Thread.Sleep(50);
@@ -203,22 +217,27 @@ namespace TokenRing
                 }
             }
         }
+        private Thread dataSendThread1;
         public void Station1Write(object sender, MouseEventArgs e)
         {
-            Thread dataSendThread = new Thread(Station1Write);
-            dataSendThread.Start();
+            dataSendThread1 = new Thread(Station1Write);
+            dataSendThread1.Start();
         }
+
+        private Thread dataSendThread2;
 
         public void Station2Write(object sender, MouseEventArgs e)
         {
-            Thread dataSendThread = new Thread(Station2Write);
-            dataSendThread.Start();
+            dataSendThread2 = new Thread(Station2Write);
+            dataSendThread2.Start();
         }
+
+        private Thread dataSendThread3;
 
         public void Station3Write(object sender, MouseEventArgs e)
         {
-            Thread dataSendThread = new Thread(Station3Write);
-            dataSendThread.Start();
+            dataSendThread3 = new Thread(Station3Write);
+            dataSendThread3.Start();
         }
 
         public void CreateToken(object sender, MouseEventArgs e)
@@ -231,6 +250,7 @@ namespace TokenRing
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            stationName = "";
             station1 = new Station(1, false);
             station2 = new Station(10, false);
             station3 = new Station(100, true);
@@ -251,6 +271,9 @@ namespace TokenRing
             thread1.Abort();
             thread2.Abort();
             thread3.Abort();
+            dataSendThread1.Abort();
+            dataSendThread2.Abort();
+            dataSendThread3.Abort();
         }
     }
 }
