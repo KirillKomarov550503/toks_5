@@ -9,81 +9,106 @@ namespace TokenRing
 {
     public partial class Form1 : Form
     {
-        //public byte[] ReceivedMessage(byte[] package, bool isMonitor)
-        //{
-        //    if (isMonitor) // Если станция является монитором
-        //    {
-        //        if (package[0] == 1) // Если полученый пакет - это кадр
-        //        {
-        //            if (package[4] == 0)// Если байт "монитор" равен нулю, то меняем значение на 1
-        //            {
-        //                package[4] = 1;
-        //            }
-        //            else // Иначе пакет прошел всё кольцо, не найдя адрес станции получения, то чтобы избежать зацикливания, мы инициируем исправление кольца
-        //            {
-        //                for (int i = 0; i < 6; i++)
-        //                    package[0] = 0;
-        //                textBox5.Text += "Fix frame\r\n";
-        //                //return package;
-        //            }
-        //        }
-        //    }
-        //    if (package[0] == 1) // Если получен кадр
-        //    {
-        //        if (package[3] == 1) // если байт статус равен 1, то станция приемник считала байт данных
-        //        {
-        //            if (package[2] == sourceAddress) //  если адрес источника в пакете равен адресу станции
-        //            {
-        //                isFrameReturn = true;
+        private byte senderAddress;
+        private bool isFinishReceive;
+        private bool isFrameReturn;
 
-        //            }
+        public void ReceivedMessage(bool isMonitor, byte sourceAddress, TextBox textBox)
+        {
+            Thread.Sleep(1000);
+            if (isMonitor)
+            {
+                if (package[0] == 1)
+                {
+                    if (package[1] == sourceAddress)
+                    {
+                        this.Invoke((MethodInvoker)(delegate
+                        {
+                            package[3] = 1;
+                            textBox.Text += Convert.ToByte(package[5]);
+                        }));
+                        return;
+                    }
+                    else
+                    {
+                        if (package[4] == 0)
+                        {
+                            this.Invoke((MethodInvoker)(delegate
+                            {
+                                package[4] = 1;
+                            }));
+                            return;
+                        }
+                        else
+                        {
+                            this.Invoke((MethodInvoker)(delegate
+                            {
+                                for (int i = 0; i < 6; i++)
+                                    package[i] = 0;
+                                textBox.Text += "Fix ring\r\n";
+                            }));
+                            return;
+                        }
+                    }
+                }
+                else return;
+            }
+            else
+            {
+                if (package[0] == 1)
+                {
+                    if (package[1] == sourceAddress)
+                    {
+                        this.Invoke((MethodInvoker)(delegate
+                        {
+                            package[3] = 1;
+                            textBox.Text += Encoding.ASCII.GetString(new byte[] { package[5] });
+                        }));
+                    }
+                    else return;
 
-        //        }
-        //        if (package[1] == sourceAddress) //Если пакет предназначен для данной станции
-        //        {
+                }
+                else return;
+            }
+            return;
+        }
 
-        //            if (senderAddress != package[2]) // Если хранящийся адрес отправителя не равен адресу, указанному в пакете, то это значит,
-        //            {// что сообщение получено уже от другой станции и нужно добавить символ enter
-        //                isFinishReceive = true;
-        //                receivedMessage += "\r\n";
-        //            }
-        //            senderAddress = package[2]; // записываем новый адрес отправителя
-        //            receivedMessage += Encoding.ASCII.GetString(new byte[] { package[5] });// пишем сообщение в буфер
-        //            package[3] = 1; // устанавливаем флаг статус, что адрес совпадает и сообщение прочитано
-        //        }
+        public void SendMessage(byte bt, byte destinationAddress, byte sourceAddress)
+        {
+            if (bt == 0)
+            {
+                this.Invoke((MethodInvoker)(delegate
+                {
 
-        //    }
+                    package[0] = 0;
+                    package[1] = 0;
+                    package[2] = 0;
+                    package[3] = 0;
+                    package[4] = 0;
+                    package[5] = 0;
+                }));
+            }
+            else
+            {
+                this.Invoke((MethodInvoker)(delegate
+                {
+                    package[0] = 1;
+                    package[1] = destinationAddress;
+                    package[2] = sourceAddress;
+                    package[3] = 0;
+                    package[4] = 0;
+                    package[5] = bt;
+                    Console.WriteLine("SendMessage - package length: " + package.Length);
+                    Console.Write("Package: ");
+                    foreach (byte b in package)
+                    {
+                        Console.Write(b + " ");
+                    }
+                }));
 
-        //    return package;
-        //}
+            }
+        }
 
-        //public byte[] SendMessage(byte[] package, byte bt)
-        //{
-        //    if (bt == 0)
-        //    {
-        //        package[0] = 0;
-        //        package[1] = 0;
-        //        package[2] = 0;
-        //        package[3] = 0;
-        //        package[4] = 0;
-        //        package[5] = 0;
-        //    }
-        //    else
-        //    {
-        //        package[0] = 1;
-        //        package[1] = destinationAddress;
-        //        package[2] = sourceAddress;
-        //        package[3] = 0;
-        //        package[4] = 0;
-        //        package[5] = bt;
-        //    }
-        //    Console.WriteLine("SendMessage - package: ");
-        //    foreach (byte b in package)
-        //    {
-        //        Console.Write(b + " ");
-        //    }
-        //    return package;
-        //}
         private Thread thread1;
         private Thread thread2;
         private Thread thread3;
@@ -91,20 +116,11 @@ namespace TokenRing
         private volatile byte[] package;
         private byte activeStation;
 
-        private Station station1;
 
-        private Station station2;
 
-        private Station station3;
         private List<Wait> queue = new List<Wait>();
 
-        private void SendDataMonitor()
-        {
-            while (true)
-            {
-                Thread.Sleep(10);
-            }
-        }
+
         public void StationWork1()
         {
             while (true)
@@ -114,24 +130,27 @@ namespace TokenRing
                     this.Invoke((MethodInvoker)(delegate
                     {
                         activeStation = 0;
-                        textBox3.Text = station1.ReceivedMessage1;
                         textBox2.Text = "*\r\n";
-                        package = station1.ReceivedMessage(package);
-                        if (station1.IsFinishReceive && queue.Count > 0)
-                        {
-                            queue.RemoveAt(0);
-                            station1.IsFinishReceive = false;
-                        }
+
                     }));
-                    Thread.Sleep(1000);
+                    ReceivedMessage(false, 1, textBox3);
+
                     this.Invoke((MethodInvoker)(delegate
                     {
                         textBox2.Text = "";
                         if (queue.Count > 0 && queue[0].SourceAddress == 1)
-                            Station1Write();
-                        activeStation = 1;
+                        {
+                            if (position == 0)
+                            {
+                                StationWrite(1);
+                            }
+                            else
+                            {
+                                StationWrite(package[3]);
+                            }
+                        }
                     }));
-
+                    activeStation = 1;
                 }
                 Thread.Sleep(50);
             }
@@ -146,23 +165,26 @@ namespace TokenRing
                     this.Invoke((MethodInvoker)(delegate
                     {
                         activeStation = 0;
-                        package = station2.ReceivedMessage(package);
                         textBox11.Text = "*\r\n";
-                        textBox10.Text = station2.ReceivedMessage1;
-                        if (station2.IsFinishReceive && queue.Count > 0)
-                        {
-                            queue.RemoveAt(0);
-                            station2.IsFinishReceive = false;
-                        }
                     }));
-                    Thread.Sleep(1000);
+                    ReceivedMessage(false, 10, textBox10);
                     this.Invoke((MethodInvoker)(delegate
                     {
                         textBox11.Text = "";
-                        if (queue.Count > 0 && queue[0].SourceAddress == 10)
-                            Station2Write();
-                        activeStation = 2;
+                        if(queue.Count > 0 && queue[0].SourceAddress == 10)
+                        {
+                            if (position == 0)
+                            {
+                                StationWrite(1);
+                            }
+                            else
+                            {
+                                StationWrite(package[3]);
+                            }
+                        }
                     }));
+                    activeStation = 2;
+
                 }
                 Thread.Sleep(50);
             }
@@ -174,35 +196,29 @@ namespace TokenRing
             {
                 if (package != null && activeStation == 2)
                 {
+                    Console.WriteLine("Start here");
                     this.Invoke((MethodInvoker)(delegate
                     {
                         activeStation = 0;
-                        package = station3.ReceivedMessage(package);
                         textBox5.Text = "*\r\n";
-                        textBox4.Text = station3.ReceivedMessage1;
-                        if (station3.IsTerminate)
-                        {
-                            textBox5.Text += "Fix frame\r\n";
-                        }
-                        if (station3.IsFinishReceive && queue.Count > 0)
-                        {
-                            queue.RemoveAt(0);
-                            station3.IsFinishReceive = false;
-                        }
                     }));
-                    if (station3.IsTerminate)
-                    {
-                        station3.IsTerminate = true;
-                        Thread.Sleep(2000);
-                    }
-                    Thread.Sleep(1000);
+                    ReceivedMessage(true, 100, textBox4);
                     this.Invoke((MethodInvoker)(delegate
                     {
                         textBox5.Text = "";
                         if (queue.Count > 0 && queue[0].SourceAddress == 100)
-                            Station3Write();
-                        activeStation = 3;
+                        {
+                            if (position == 0)
+                            {
+                                StationWrite(1);
+                            }
+                            else
+                            {
+                                StationWrite(package[3]);
+                            }
+                        }
                     }));
+                    activeStation = 3;
                 }
                 Thread.Sleep(50);
             }
@@ -214,77 +230,35 @@ namespace TokenRing
         }
 
         private int position = 0;
-        private void Station1Write()
+        private void StationWrite(byte status)
         {
-            this.Invoke((MethodInvoker)(delegate
+            if (status == 1)
             {
-                if (station1.IsFrameReturn)
+                if (position < queue[0].Message.Length)
                 {
-                    if (position < queue[0].Message.Length)
+                    this.Invoke((MethodInvoker)(delegate
                     {
-                        station1.SourceAddress = queue[0].SourceAddress;
-                        station1.DestinationAddress = queue[0].DestinationAddress;
-                        package = station1.SendMessage(package, queue[0].Message[position]);
+                        SendMessage(queue[0].Message[position],
+                        queue[0].DestinationAddress, queue[0].SourceAddress);
                         position++;
-                        station1.IsFrameReturn = false;
-                        
-                    }
-                    else
-                    {
-                        position = 0;
-                    }
-                }
-            }));
-
-
-        }
-
-        private void Station2Write()
-        {
-            this.Invoke((MethodInvoker)(delegate
-            {
-                if (station2.IsFrameReturn)
-                {
-                    if (position < queue[0].Message.Length)
-                    {
-                        station2.SourceAddress = queue[0].SourceAddress;
-                        station2.DestinationAddress = queue[0].DestinationAddress;
-                        package = station2.SendMessage(package, queue[0].Message[position]);
-                        position++;
-                        station2.IsFrameReturn = false;
-                    }
-                    else
-                    {
-                        position = 0;
-                    }
+                        Console.WriteLine("Position: " + position);
+                    }));
 
                 }
-            }));
-
-        }
-
-        private void Station3Write()
-        {
-            this.Invoke((MethodInvoker)(delegate
-            {
-                if (station3.IsFrameReturn)
+                else
                 {
-                    if (position < queue[0].Message.Length)
+                    this.Invoke((MethodInvoker)(delegate
                     {
-                        station3.SourceAddress = queue[0].SourceAddress;
-                        station3.DestinationAddress = queue[0].DestinationAddress;
-                        package = station3.SendMessage(package, queue[0].Message[position]);
-                        position++;
-                        station3.IsFrameReturn = false;
-                    }
-                    else
-                    {
+                        SendMessage(0, 0, 0);
+                        queue.RemoveAt(0);
                         position = 0;
-                    }
+                    }));
                 }
-            }));
+            }
         }
-        public void Station1Write(object sender, MouseEventArgs e)
+
+
+        public void Station1WriteEvent(object sender, MouseEventArgs e)
         {
             this.Invoke((MethodInvoker)(delegate
             {
@@ -300,7 +274,7 @@ namespace TokenRing
 
         }
 
-        public void Station2Write(object sender, MouseEventArgs e)
+        public void Station2WriteEvent(object sender, MouseEventArgs e)
         {
             this.Invoke((MethodInvoker)(delegate
             {
@@ -314,7 +288,7 @@ namespace TokenRing
             }));
         }
 
-        public void Station3Write(object sender, MouseEventArgs e)
+        public void Station3WriteEvent(object sender, MouseEventArgs e)
         {
             this.Invoke((MethodInvoker)(delegate
             {
@@ -330,20 +304,21 @@ namespace TokenRing
 
         public void CreateToken(object sender, MouseEventArgs e)
         {
-            package = new byte[6];
-            for (int i = 0; i < 6; i++)
-                package[i] = 0;
-            activeStation = 2;
+            this.Invoke((MethodInvoker)(delegate
+            {
+                package = new byte[6];
+                for (int i = 0; i < 6; i++)
+                    package[i] = 0;
+                activeStation = 2;
+            }));
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            station1 = new Station(1, false);
-            station2 = new Station(10, false);
-            station3 = new Station(100, true);
-            button1.MouseClick += Station1Write;
-            button2.MouseClick += Station2Write;
-            button3.MouseClick += Station3Write;
+            isFrameReturn = true;
+            button1.MouseClick += Station1WriteEvent;
+            button2.MouseClick += Station2WriteEvent;
+            button3.MouseClick += Station3WriteEvent;
             button4.MouseClick += CreateToken;
             thread1 = new Thread(StationWork1);
             thread1.Start();
