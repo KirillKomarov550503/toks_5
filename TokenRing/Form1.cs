@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 
@@ -10,9 +9,21 @@ namespace TokenRing
     public partial class Form1 : Form
     {
         private byte destinationAddress;
-        public void ReceivedMessage(bool isMonitor, byte sourceAddress, TextBox textBox) //Метод анализирует полученный из кольца пакет данных
+        private Wait waitStation1;
+        private Wait waitStation2;
+        private Wait waitStation3;
+        private bool isFix = false;
+        public void ReceivedMessage(bool isMonitor, byte sourceAddress, TextBox outBox) //Метод анализирует полученный из кольца пакет данных
         {
             Thread.Sleep(1000); // Делаем задержку в 1 секунду
+            if(package[0] == 0 && position > 0)
+            {
+                this.Invoke((MethodInvoker)(delegate
+                {
+                    position = 0;
+                    isFix = true;
+                }));
+            }
             if (isMonitor) // Проверяем, является ли станция станцией-монитором
             {
                 if (package[0] == 1) // Если получен frame
@@ -22,7 +33,7 @@ namespace TokenRing
                         this.Invoke((MethodInvoker)(delegate
                         {
                             package[3] = 1; // Устанавливаем байт Status в 1, то есть станция считала байт данных
-                            textBox.Text += Encoding.ASCII.GetString(new byte[] { package[5] }); // считываем байт данных
+                            outBox.Text += Encoding.ASCII.GetString(new byte[] { package[5] }); // считываем байт данных
                         }));
                         return; // завершаем работу метода
                     }
@@ -43,8 +54,6 @@ namespace TokenRing
                                 for (int i = 0; i < 6; i++) // чиним кольцо, устанавливая все значения пакета в 0
                                     package[i] = 0;
                                 textBox5.Text += "Fix ring\r\n";
-                                queue.RemoveAt(0); // удаляем из очереди ожидания станцию
-                                position = 0; // сбраываем индекс сообщения в 0
                             }));
                             Thread.Sleep(1000); // делаем дополнительую задержку в 1 секунду, чтобы успеть отобразить в окне вывода сообщение и починке кольца
                             return;
@@ -62,7 +71,7 @@ namespace TokenRing
                         this.Invoke((MethodInvoker)(delegate
                         {
                             package[3] = 1;// Устанавливаем байт Status в 1, то есть станция считала байт данных
-                            textBox.Text += Encoding.ASCII.GetString(new byte[] { package[5] });// считываем байт данных
+                            outBox.Text += Encoding.ASCII.GetString(new byte[] { package[5] });// считываем байт данных
                         }));
                     }
                     else return;
@@ -79,13 +88,13 @@ namespace TokenRing
             {
                 this.Invoke((MethodInvoker)(delegate
                 {
-                    string separator = "\r\n"; 
+                    string separator = "\r\n";
                     switch (this.destinationAddress) // в зависимости от адреса станции приемника, в соответствующее окно вывода добавляем символ Enter
                     {
                         case 1: textBox3.Text += separator; break;
                         case 10: textBox10.Text += separator; break;
                         case 100: textBox4.Text += separator; break;
-                        default:break;
+                        default: break;
                     }
                     for (int i = 0; i < 6; i++) // освобождаем frame, переведя его в token
                         package[i] = 0;
@@ -95,7 +104,7 @@ namespace TokenRing
             {
                 this.Invoke((MethodInvoker)(delegate
                 {
-                    package[0] = 1; 
+                    package[0] = 1;
                     package[1] = destinationAddress;
                     package[2] = sourceAddress;
                     package[3] = 0;
@@ -113,11 +122,7 @@ namespace TokenRing
 
         private volatile byte[] package; // пересылаем пакет байтов между станциями
         private byte activeStation; // номер станции, на которую пришел пакет
-
-
-
-        private List<Wait> queue = new List<Wait>();// очередь из станций ожидающих отправки данных
-
+        private bool isNull;
 
         public void StationWork1() // поток работы станции с адресом равным 1
         {
@@ -132,20 +137,37 @@ namespace TokenRing
 
                     }));
                     ReceivedMessage(false, 1, textBox3); // Анализируем полученный пакет
+                    if(isFix)
+                    {
+                        isFix = false;
+                        waitStation1 = null;
+                    }
+                    foreach(byte bt in package)
+                    {
+                        Console.Write(bt + " ");
+                    }
+                    Console.WriteLine();
+                    Console.WriteLine("Position: " + position);
 
                     this.Invoke((MethodInvoker)(delegate
                     {
                         textBox2.Text = "";
-                        if (queue.Count > 0 && queue[0].SourceAddress == 1) // проверяем, что в очереди на отправку сообщения первым стоит данная станция
+                        if ((package[0] == 1 && package[2] == 1 && package[3] == 1 && waitStation1 != null) || (package[0] == 0 && waitStation1 != null)) // проверяем, что в очереди на отправку сообщения первым стоит данная станция
                         {
                             if (position == 0)
                             {
-                                StationWrite(1); // пишем в пакет данные для отправки
+                                StationWrite(1, waitStation1); // пишем в пакет данные для отправки
                             }
                             else
                             {
-                                StationWrite(package[3]);// пишем в пакет данные для отправки
+                                StationWrite(package[3], waitStation1);// пишем в пакет данные для отправки
+                                if (isNull)
+                                {
+                                    waitStation1 = null;
+                                    isNull = false;
+                                }
                             }
+                            
                         }
                     }));
                     activeStation = 1; // отправка пакета следующей станции
@@ -165,25 +187,35 @@ namespace TokenRing
                         textBox11.Text = "*\r\n";
                     }));
                     ReceivedMessage(false, 10, textBox10);
+                    if (isFix)
+                    {
+                        isFix = false;
+                        waitStation2 = null;
+                    }
                     this.Invoke((MethodInvoker)(delegate
                     {
                         textBox11.Text = "";
-                        if (queue.Count > 0 && queue[0].SourceAddress == 10)
+                        if ((package[0] == 1 && package[2] == 10 && package[3] == 1 && waitStation2 != null) || (package[0] == 0 && waitStation2 != null))
                         {
                             if (position == 0)
                             {
-                                StationWrite(1);
+                                StationWrite(1, waitStation2);
                             }
                             else
                             {
-                                StationWrite(package[3]);
+                                StationWrite(package[3], waitStation2);
+                                if(isNull)
+                                {
+                                    waitStation2 = null;
+                                    isNull = false;
+                                }
                             }
                         }
                     }));
                     activeStation = 2;
 
                 }
-               
+
             }
         }
 
@@ -199,24 +231,35 @@ namespace TokenRing
                         textBox5.Text = "*\r\n";
                     }));
                     ReceivedMessage(true, 100, textBox4);
+                    if (isFix)
+                    {
+                        isFix = false;
+                        waitStation3 = null;
+                    }
                     this.Invoke((MethodInvoker)(delegate
                     {
                         textBox5.Text = "";
-                        if (queue.Count > 0 && queue[0].SourceAddress == 100)
+                        if ((package[0] == 1 && package[2] == 100 && package[3] == 1 && waitStation3 != null) || (package[0] == 0 && waitStation3 != null))
                         {
+                            
                             if (position == 0)
                             {
-                                StationWrite(1);
+                                StationWrite(1, waitStation3);
                             }
                             else
                             {
-                                StationWrite(package[3]);
+                                StationWrite(package[3], waitStation3);
+                                if(isNull)
+                                {
+                                    waitStation2 = null;
+                                    isNull = false;
+                                }
                             }
                         }
                     }));
                     activeStation = 3;
                 }
-                
+
             }
         }
 
@@ -227,15 +270,15 @@ namespace TokenRing
 
         private int position = 0;//позиция индекса в сообщении для отправки
 
-        private void StationWrite(byte status) // начало записи байта в пакет
+        private void StationWrite(byte status, Wait waitStation) // начало записи байта в пакет
         {
             if (status == 1) // Проверка,что можно записывать данные
             {
-                if (position < queue[0].Message.Length) // Проверяем, что позиция индекса в сообщении меньше длины сообщения
+                if (position < waitStation.Message.Length) // Проверяем, что позиция индекса в сообщении меньше длины сообщения
                 {
                     this.Invoke((MethodInvoker)(delegate
                     {
-                        SendMessage(queue[0].Message[position],queue[0].DestinationAddress, queue[0].SourceAddress); // записываем байт в пакет
+                        SendMessage(waitStation.Message[position], waitStation.DestinationAddress, waitStation.SourceAddress); // записываем байт в пакет
                         position++; //увеличиваем позицию индекса
                     }));
 
@@ -245,7 +288,7 @@ namespace TokenRing
                     this.Invoke((MethodInvoker)(delegate
                     {
                         SendMessage(0, 0, 0);
-                        queue.RemoveAt(0); // удаляем из очереди станцию
+                        isNull = true;
                         position = 0; // сбрасываем позицию индекса в 0
                     }));
                 }
@@ -263,10 +306,9 @@ namespace TokenRing
                     return;
                 }
 
-                queue.Add(new Wait(1, Convert.ToByte(textBox7.Text), //добавляем данную станцию в очередь ожидания
-                    Encoding.ASCII.GetBytes(textBox1.Text)));
+                waitStation1 = new Wait(1, Convert.ToByte(textBox7.Text), //добавляем данную станцию в очередь ожидания
+                     Encoding.ASCII.GetBytes(textBox1.Text));
             }));
-
         }
 
         public void Station2WriteEvent(object sender, MouseEventArgs e)//событие отправки сообщения станцией с адресом 10
@@ -278,8 +320,8 @@ namespace TokenRing
                     textBox11.Text += "Empty \"Input\" or \"Destination address\" field";
                     return;
                 }
-                queue.Add(new Wait(10, Convert.ToByte(textBox8.Text),
-                    Encoding.ASCII.GetBytes(textBox12.Text)));
+                waitStation2 = new Wait(10, Convert.ToByte(textBox8.Text),
+                    Encoding.ASCII.GetBytes(textBox12.Text));
             }));
         }
 
@@ -292,8 +334,8 @@ namespace TokenRing
                     textBox5.Text += "Empty \"Input\" or \"Destination address\" field";
                     return;
                 }
-                queue.Add(new Wait(100, Convert.ToByte(textBox9.Text),
-                    Encoding.ASCII.GetBytes(textBox6.Text)));
+                waitStation3 = new Wait(100, Convert.ToByte(textBox9.Text),
+                    Encoding.ASCII.GetBytes(textBox6.Text));
             }));
         }
 
@@ -321,7 +363,7 @@ namespace TokenRing
             thread2.Start();
             thread3 = new Thread(StationWork3);
             thread3.Start();
-
+            isNull = false;
 
         }
 
