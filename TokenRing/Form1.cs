@@ -16,6 +16,12 @@ namespace TokenRing
         public void ReceivedMessage(bool isMonitor, byte sourceAddress, TextBox textBox)
         {
             Thread.Sleep(1000);
+            Console.Write("Package: ");
+            foreach (byte b in package)
+            {
+                Console.Write(b + " ");
+            }
+            Console.WriteLine();
             if (isMonitor)
             {
                 if (package[0] == 1)
@@ -25,7 +31,7 @@ namespace TokenRing
                         this.Invoke((MethodInvoker)(delegate
                         {
                             package[3] = 1;
-                            textBox.Text += Convert.ToByte(package[5]);
+                            textBox.Text += Encoding.ASCII.GetString(new byte[] { package[5] });
                         }));
                         return;
                     }
@@ -45,8 +51,11 @@ namespace TokenRing
                             {
                                 for (int i = 0; i < 6; i++)
                                     package[i] = 0;
-                                textBox.Text += "Fix ring\r\n";
+                                textBox5.Text += "Fix ring\r\n";
+                                queue.RemoveAt(0);
+                                position = 0;
                             }));
+                            Thread.Sleep(1000);
                             return;
                         }
                     }
@@ -98,12 +107,6 @@ namespace TokenRing
                     package[3] = 0;
                     package[4] = 0;
                     package[5] = bt;
-                    Console.WriteLine("SendMessage - package length: " + package.Length);
-                    Console.Write("Package: ");
-                    foreach (byte b in package)
-                    {
-                        Console.Write(b + " ");
-                    }
                 }));
 
             }
@@ -196,7 +199,10 @@ namespace TokenRing
             {
                 if (package != null && activeStation == 2)
                 {
-                    Console.WriteLine("Start here");
+                    foreach(Wait wait in queue)
+                    {
+                        Console.WriteLine("Station: " + wait.SourceAddress + " ; Message: " + wait.Message);
+                    }
                     this.Invoke((MethodInvoker)(delegate
                     {
                         activeStation = 0;
@@ -311,6 +317,7 @@ namespace TokenRing
                     package[i] = 0;
                 activeStation = 2;
             }));
+            button4.Enabled = false;
         }
 
         private void Form1_Load(object sender, EventArgs e)
