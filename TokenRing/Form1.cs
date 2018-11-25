@@ -9,10 +9,7 @@ namespace TokenRing
 {
     public partial class Form1 : Form
     {
-        private byte senderAddress;
-        private bool isFinishReceive;
-        private bool isFrameReturn;
-
+        private byte destinationAddress;
         public void ReceivedMessage(bool isMonitor, byte sourceAddress, TextBox textBox)
         {
             Thread.Sleep(1000);
@@ -88,7 +85,14 @@ namespace TokenRing
             {
                 this.Invoke((MethodInvoker)(delegate
                 {
-
+                    string separator = "\r\n";
+                    switch (this.destinationAddress)
+                    {
+                        case 1: textBox3.Text += separator; break;
+                        case 10: textBox10.Text += separator; break;
+                        case 100: textBox4.Text += separator; break;
+                        default:break;
+                    }
                     package[0] = 0;
                     package[1] = 0;
                     package[2] = 0;
@@ -107,6 +111,7 @@ namespace TokenRing
                     package[3] = 0;
                     package[4] = 0;
                     package[5] = bt;
+                    this.destinationAddress = destinationAddress;
                 }));
 
             }
@@ -174,7 +179,7 @@ namespace TokenRing
                     this.Invoke((MethodInvoker)(delegate
                     {
                         textBox11.Text = "";
-                        if(queue.Count > 0 && queue[0].SourceAddress == 10)
+                        if (queue.Count > 0 && queue[0].SourceAddress == 10)
                         {
                             if (position == 0)
                             {
@@ -199,7 +204,7 @@ namespace TokenRing
             {
                 if (package != null && activeStation == 2)
                 {
-                    foreach(Wait wait in queue)
+                    foreach (Wait wait in queue)
                     {
                         Console.WriteLine("Station: " + wait.SourceAddress + " ; Message: " + wait.Message);
                     }
@@ -322,7 +327,6 @@ namespace TokenRing
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            isFrameReturn = true;
             button1.MouseClick += Station1WriteEvent;
             button2.MouseClick += Station2WriteEvent;
             button3.MouseClick += Station3WriteEvent;
