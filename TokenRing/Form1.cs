@@ -364,7 +364,12 @@ namespace TokenRing
             thread3 = new Thread(StationWork3);
             thread3.Start();
             isNull = false;
-
+            textBox3.ScrollBars = ScrollBars.Both;
+            textBox2.ScrollBars = ScrollBars.Both;
+            textBox10.ScrollBars = ScrollBars.Both;
+            textBox11.ScrollBars = ScrollBars.Both;
+            textBox4.ScrollBars = ScrollBars.Both;
+            textBox5.ScrollBars = ScrollBars.Both;
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
