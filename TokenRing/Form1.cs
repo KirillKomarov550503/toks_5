@@ -16,12 +16,12 @@ namespace TokenRing
         public void ReceivedMessage(bool isMonitor, byte sourceAddress, TextBox outBox) //Метод анализирует полученный из кольца пакет данных
         {
             Thread.Sleep(1000); // Делаем задержку в 1 секунду
-            if(package[0] == 0 && position > 0)
+            if (package[0] == 0 && position > 0) // проверяем, что произолшла починка кольца
             {
                 this.Invoke((MethodInvoker)(delegate
                 {
                     position = 0;
-                    isFix = true;
+                    isFix = true; // устанавливаем флаг починки в true
                 }));
             }
             if (isMonitor) // Проверяем, является ли станция станцией-монитором
@@ -132,17 +132,17 @@ namespace TokenRing
                 {
                     this.Invoke((MethodInvoker)(delegate
                     {
-                        activeStation = 0;
+                        //activeStation = 0;
                         textBox2.Text = "*\r\n"; // выводим в окно Debug символ *
 
                     }));
                     ReceivedMessage(false, 1, textBox3); // Анализируем полученный пакет
-                    if(isFix)
+                    if (isFix)
                     {
                         isFix = false;
                         waitStation1 = null;
                     }
-                    foreach(byte bt in package)
+                    foreach (byte bt in package)
                     {
                         Console.Write(bt + " ");
                     }
@@ -167,7 +167,7 @@ namespace TokenRing
                                     isNull = false;
                                 }
                             }
-                            
+
                         }
                     }));
                     activeStation = 1; // отправка пакета следующей станции
@@ -183,7 +183,7 @@ namespace TokenRing
                 {
                     this.Invoke((MethodInvoker)(delegate
                     {
-                        activeStation = 0;
+                        //activeStation = 0;
                         textBox11.Text = "*\r\n";
                     }));
                     ReceivedMessage(false, 10, textBox10);
@@ -204,7 +204,7 @@ namespace TokenRing
                             else
                             {
                                 StationWrite(package[3], waitStation2);
-                                if(isNull)
+                                if (isNull)
                                 {
                                     waitStation2 = null;
                                     isNull = false;
@@ -227,7 +227,7 @@ namespace TokenRing
                 {
                     this.Invoke((MethodInvoker)(delegate
                     {
-                        activeStation = 0;
+                        //activeStation = 0;
                         textBox5.Text = "*\r\n";
                     }));
                     ReceivedMessage(true, 100, textBox4);
@@ -241,7 +241,7 @@ namespace TokenRing
                         textBox5.Text = "";
                         if ((package[0] == 1 && package[2] == 100 && package[3] == 1 && waitStation3 != null) || (package[0] == 0 && waitStation3 != null))
                         {
-                            
+
                             if (position == 0)
                             {
                                 StationWrite(1, waitStation3);
@@ -249,7 +249,7 @@ namespace TokenRing
                             else
                             {
                                 StationWrite(package[3], waitStation3);
-                                if(isNull)
+                                if (isNull)
                                 {
                                     waitStation2 = null;
                                     isNull = false;
