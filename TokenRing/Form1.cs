@@ -9,9 +9,10 @@ namespace TokenRing
     public partial class Form1 : Form
     {
         private byte destinationAddress;
-        private Wait waitStation1;
-        private Wait waitStation2;
-        private Wait waitStation3;
+        public Wait waitStation1;
+        public Wait waitStation2;
+        public Wait waitStation3;
+
         private bool isFix = false;
         public void ReceivedMessage(bool isMonitor, byte sourceAddress, TextBox outBox) //Метод анализирует полученный из кольца пакет данных
         {
@@ -53,7 +54,7 @@ namespace TokenRing
                             {
                                 for (int i = 0; i < 6; i++) // чиним кольцо, устанавливая все значения пакета в 0
                                     package[i] = 0;
-                                textBox5.Text += "Fix ring\r\n";
+                                station3.textBox5.Text += "Fix ring\r\n";
                             }));
                             Thread.Sleep(1000); // делаем дополнительую задержку в 1 секунду, чтобы успеть отобразить в окне вывода сообщение и починке кольца
                             return;
@@ -91,9 +92,9 @@ namespace TokenRing
                     string separator = "\r\n";
                     switch (this.destinationAddress) // в зависимости от адреса станции приемника, в соответствующее окно вывода добавляем символ Enter
                     {
-                        case 1: textBox3.Text += separator; break;
-                        case 10: textBox10.Text += separator; break;
-                        case 100: textBox4.Text += separator; break;
+                        case 1: station1.textBox3.Text += separator; break;
+                        case 10: station2.textBox10.Text += separator; break;
+                        case 100: station3.textBox4.Text += separator; break;
                         default: break;
                     }
                     for (int i = 0; i < 6; i++) // освобождаем frame, переведя его в token
@@ -132,26 +133,19 @@ namespace TokenRing
                 {
                     this.Invoke((MethodInvoker)(delegate
                     {
-                        //activeStation = 0;
-                        textBox2.Text = "*\r\n"; // выводим в окно Debug символ *
+                        station1.textBox2.Text = "*\r\n"; // выводим в окно Debug символ *
 
                     }));
-                    ReceivedMessage(false, 1, textBox3); // Анализируем полученный пакет
+                    ReceivedMessage(false, 1, station1.textBox3); // Анализируем полученный пакет
                     if (isFix)
                     {
                         isFix = false;
                         waitStation1 = null;
                     }
-                    foreach (byte bt in package)
-                    {
-                        Console.Write(bt + " ");
-                    }
-                    Console.WriteLine();
-                    Console.WriteLine("Position: " + position);
 
                     this.Invoke((MethodInvoker)(delegate
                     {
-                        textBox2.Text = "";
+                        station1.textBox2.Text = "";
                         if ((package[0] == 1 && package[2] == 1 && package[3] == 1 && waitStation1 != null) || (package[0] == 0 && waitStation1 != null)) // проверяем, что в очереди на отправку сообщения первым стоит данная станция
                         {
                             if (position == 0)
@@ -172,6 +166,7 @@ namespace TokenRing
                     }));
                     activeStation = 1; // отправка пакета следующей станции
                 }
+                Thread.Sleep(50);
             }
         }
 
@@ -183,10 +178,9 @@ namespace TokenRing
                 {
                     this.Invoke((MethodInvoker)(delegate
                     {
-                        //activeStation = 0;
-                        textBox11.Text = "*\r\n";
+                        station2.textBox11.Text = "*\r\n";
                     }));
-                    ReceivedMessage(false, 10, textBox10);
+                    ReceivedMessage(false, 10, station2.textBox10);
                     if (isFix)
                     {
                         isFix = false;
@@ -194,7 +188,7 @@ namespace TokenRing
                     }
                     this.Invoke((MethodInvoker)(delegate
                     {
-                        textBox11.Text = "";
+                        station2.textBox11.Text = "";
                         if ((package[0] == 1 && package[2] == 10 && package[3] == 1 && waitStation2 != null) || (package[0] == 0 && waitStation2 != null))
                         {
                             if (position == 0)
@@ -215,7 +209,7 @@ namespace TokenRing
                     activeStation = 2;
 
                 }
-
+                Thread.Sleep(50);
             }
         }
 
@@ -227,10 +221,9 @@ namespace TokenRing
                 {
                     this.Invoke((MethodInvoker)(delegate
                     {
-                        //activeStation = 0;
-                        textBox5.Text = "*\r\n";
+                        station3.textBox5.Text = "*\r\n";
                     }));
-                    ReceivedMessage(true, 100, textBox4);
+                    ReceivedMessage(true, 100, station3.textBox4);
                     if (isFix)
                     {
                         isFix = false;
@@ -238,7 +231,7 @@ namespace TokenRing
                     }
                     this.Invoke((MethodInvoker)(delegate
                     {
-                        textBox5.Text = "";
+                        station3.textBox5.Text = "";
                         if ((package[0] == 1 && package[2] == 100 && package[3] == 1 && waitStation3 != null) || (package[0] == 0 && waitStation3 != null))
                         {
 
@@ -259,7 +252,7 @@ namespace TokenRing
                     }));
                     activeStation = 3;
                 }
-
+                Thread.Sleep(50);
             }
         }
 
@@ -296,50 +289,51 @@ namespace TokenRing
         }
 
 
-        public void Station1WriteEvent(object sender, MouseEventArgs e) //событие отправки сообщения станцией с адресом 1
+
+        public void Station1WriteEvent() //событие отправки сообщения станцией с адресом 1
         {
             this.Invoke((MethodInvoker)(delegate
             {
-                if (textBox1.Text.Length == 0 || textBox7.Text.Length == 0) // проверка, что введен текст сообщения и адрес приемника
+                if (station1.textBox1.Text.Length == 0 || station1.textBox7.Text.Length == 0) // проверка, что введен текст сообщения и адрес приемника
                 {
-                    textBox2.Text += "Empty \"Input\" or \"Destination address\" field";
+                    station1.textBox2.Text += "Empty \"Input\" or \"Destination address\" field";
                     return;
                 }
 
-                waitStation1 = new Wait(1, Convert.ToByte(textBox7.Text), //добавляем данную станцию в очередь ожидания
-                     Encoding.ASCII.GetBytes(textBox1.Text));
+                waitStation1 = new Wait(1, Convert.ToByte(station1.textBox7.Text), //добавляем данную станцию в очередь ожидания
+                     Encoding.ASCII.GetBytes(station1.textBox1.Text));
             }));
         }
 
-        public void Station2WriteEvent(object sender, MouseEventArgs e)//событие отправки сообщения станцией с адресом 10
+        public void Station2WriteEvent()//событие отправки сообщения станцией с адресом 10
         {
             this.Invoke((MethodInvoker)(delegate
             {
-                if (textBox8.Text.Length == 0 || textBox12.Text.Length == 0)
+                if (station2.textBox8.Text.Length == 0 || station2.textBox12.Text.Length == 0)
                 {
-                    textBox11.Text += "Empty \"Input\" or \"Destination address\" field";
+                    station2.textBox11.Text += "Empty \"Input\" or \"Destination address\" field";
                     return;
                 }
-                waitStation2 = new Wait(10, Convert.ToByte(textBox8.Text),
-                    Encoding.ASCII.GetBytes(textBox12.Text));
+                waitStation2 = new Wait(10, Convert.ToByte(station2.textBox8.Text),
+                    Encoding.ASCII.GetBytes(station2.textBox12.Text));
             }));
         }
 
-        public void Station3WriteEvent(object sender, MouseEventArgs e)//событие отправки сообщения станцией с адресом 100
+        public void Station3WriteEvent()//событие отправки сообщения станцией с адресом 100
         {
             this.Invoke((MethodInvoker)(delegate
             {
-                if (textBox9.Text.Length == 0 || textBox6.Text.Length == 0)
+                if (station3.textBox9.Text.Length == 0 || station3.textBox6.Text.Length == 0)
                 {
-                    textBox5.Text += "Empty \"Input\" or \"Destination address\" field";
+                    station3.textBox5.Text += "Empty \"Input\" or \"Destination address\" field";
                     return;
                 }
-                waitStation3 = new Wait(100, Convert.ToByte(textBox9.Text),
-                    Encoding.ASCII.GetBytes(textBox6.Text));
+                waitStation3 = new Wait(100, Convert.ToByte(station3.textBox9.Text),
+                    Encoding.ASCII.GetBytes(station3.textBox6.Text));
             }));
         }
 
-        public void CreateToken(object sender, MouseEventArgs e) // событие создания токена
+        public void CreateToken() // событие создания токена
         {
             this.Invoke((MethodInvoker)(delegate
             {
@@ -347,16 +341,106 @@ namespace TokenRing
                 for (int i = 0; i < 6; i++)
                     package[i] = 0;
                 activeStation = 2;
+                station3.button4.Enabled = false; //блокировка создания нового токена
             }));
-            button4.Enabled = false; //блокировка создания нового токена
         }
 
+        public Station1 station1;
+        public Station2 station2;
+        public Station3 station3;
+
+        public void Station1WriteEventListener()
+        {
+            while(true)
+            {
+                if(station1.isWriteEvent)
+                {
+                    this.Invoke((MethodInvoker)(delegate
+                    {
+                        Station1WriteEvent();
+                        station1.isWriteEvent = false;
+                    }));
+                }
+                Thread.Sleep(50);
+            }
+        }
+
+        public void Station2WriteEventListener()
+        {
+            while(true)
+            {
+                if(station2.isWriteEvent)
+                {
+                    this.Invoke((MethodInvoker)(delegate
+                    {
+                        Station2WriteEvent();
+                        station2.isWriteEvent = false;
+                    }));
+                }
+                Thread.Sleep(50);
+            }
+        }
+
+        public void Station3WriteEventListener()
+        {
+            while(true)
+            {
+                if(station3.isWriteEvent)
+                {
+                    this.Invoke((MethodInvoker)(delegate
+                    {
+                        Station3WriteEvent();
+                        station3.isWriteEvent = false;
+                    }));
+                }
+                Thread.Sleep(50);
+            }
+        }
+
+        public void CreateTokenEventListener()
+        {
+            while(true)
+            {
+                if(station3.isCreateToken)
+                {
+                    this.Invoke((MethodInvoker)(delegate
+                    {
+                        CreateToken();
+                        station3.button4.Enabled = false;
+                        station3.isCreateToken = false;
+                    }));
+                }
+                Thread.Sleep(50);
+            }
+        }
+
+        public Thread station1WriteEventListenerThread;
+        public Thread station2WriteEventListenerThread;
+        public Thread station3WriteEventListenerThread;
+        public Thread createTokenEventListenerThread;
         private void Form1_Load(object sender, EventArgs e)
         {
-            button1.MouseClick += Station1WriteEvent;
-            button2.MouseClick += Station2WriteEvent;
-            button3.MouseClick += Station3WriteEvent;
-            button4.MouseClick += CreateToken;
+            station1 = new Station1();
+            station2 = new Station2();
+            station3 = new Station3();
+            station1.isWriteEvent = false;
+            station2.isWriteEvent = false;
+            station3.isWriteEvent = false;
+            station3.isCreateToken = false;
+            station1WriteEventListenerThread = new Thread(Station1WriteEventListener);
+            station1WriteEventListenerThread.Start();
+            station2WriteEventListenerThread = new Thread(Station2WriteEventListener);
+            station2WriteEventListenerThread.Start();
+            station3WriteEventListenerThread = new Thread(Station3WriteEventListener);
+            station3WriteEventListenerThread.Start();
+            createTokenEventListenerThread = new Thread(CreateTokenEventListener);
+            createTokenEventListenerThread.Start();
+            station1.Show();
+            station2.Show();
+            station3.Show();
+            Hide();
+            ShowInTaskbar = false;
+
             thread1 = new Thread(StationWork1);
             thread1.Start();
             thread2 = new Thread(StationWork2);
@@ -364,12 +448,6 @@ namespace TokenRing
             thread3 = new Thread(StationWork3);
             thread3.Start();
             isNull = false;
-            textBox3.ScrollBars = ScrollBars.Both;
-            textBox2.ScrollBars = ScrollBars.Both;
-            textBox10.ScrollBars = ScrollBars.Both;
-            textBox11.ScrollBars = ScrollBars.Both;
-            textBox4.ScrollBars = ScrollBars.Both;
-            textBox5.ScrollBars = ScrollBars.Both;
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -377,6 +455,10 @@ namespace TokenRing
             thread1.Abort();
             thread2.Abort();
             thread3.Abort();
+            station1WriteEventListenerThread.Abort();
+            station2WriteEventListenerThread.Abort();
+            station3WriteEventListenerThread.Abort();
+            createTokenEventListenerThread.Abort();
         }
     }
 }

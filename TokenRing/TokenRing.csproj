@@ -54,6 +54,24 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Station1.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Station1.Designer.cs">
+      <DependentUpon>Station1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Station2.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Station2.Designer.cs">
+      <DependentUpon>Station2.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Station3.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Station3.Designer.cs">
+      <DependentUpon>Station3.cs</DependentUpon>
+    </Compile>
     <Compile Include="Wait.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
@@ -67,6 +85,15 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="Station1.resx">
+      <DependentUpon>Station1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Station2.resx">
+      <DependentUpon>Station2.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Station3.resx">
+      <DependentUpon>Station3.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

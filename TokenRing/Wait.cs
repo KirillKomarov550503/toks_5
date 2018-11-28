@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TokenRing
 {
-    class Wait
+    public partial class Wait
     {
         private byte sourceAddress;
         private byte[] message;
