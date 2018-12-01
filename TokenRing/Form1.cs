@@ -54,6 +54,7 @@ namespace TokenRing
                                 for (int i = 0; i < 6; i++) // чиним кольцо, устанавливая все значения пакета в 0
                                     package[i] = 0;
                                 textBox5.Text += "Fix ring\r\n";
+                                waitStation3 = null;
                             }));
                             Thread.Sleep(1000); // делаем дополнительую задержку в 1 секунду, чтобы успеть отобразить в окне вывода сообщение и починке кольца
                             return;
@@ -235,6 +236,7 @@ namespace TokenRing
                     {
                         isFix = false;
                         waitStation3 = null;
+                        SendMessage(0, 0, 0);
                     }
                     this.Invoke((MethodInvoker)(delegate
                     {
